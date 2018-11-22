@@ -4986,7 +4986,9 @@ static u8 fuzz_one(char** argv) {
   u8  a_collect[MAX_AUTO_EXTRA];
   u32 a_len = 0;
 
+#ifdef USE_CRF
   PrintAnalTime();
+#endif
 
 #ifdef IGNORE_FINDS
 
@@ -4996,7 +4998,7 @@ static u8 fuzz_one(char** argv) {
   if (queue_cur->depth > 1) return 1;
 
 #else
-
+#ifndef USE_CRF
   if (pending_favored) {
 
     /* If we have any favored, non-fuzzed new arrivals in the queue,
@@ -5023,7 +5025,7 @@ static u8 fuzz_one(char** argv) {
     }
 
   }
-
+#endif
 #endif /* ^IGNORE_FINDS */
 
   if (not_on_tty) {

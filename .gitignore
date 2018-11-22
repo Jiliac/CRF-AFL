@@ -3,5 +3,5 @@ afl-*
 *.so
 test-instr
 tmp-in
-tmp-out
+tmp-out*
 as
