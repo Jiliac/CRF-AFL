@@ -69,6 +69,8 @@ extern void GoSetTrace(void* p0);
 
 extern short int IsInteresting();
 
+extern void PrintAnalTime();
+
 extern void Hello();
 
 #ifdef __cplusplus

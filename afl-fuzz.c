@@ -35,6 +35,9 @@
 #define USE_CRF
 #ifdef USE_CRF
 #include "crf.h"
+#include <time.h>
+clock_t start, end, tot;
+u64 isIntCnt = 0;
 #endif
 
 #include <stdio.h>
@@ -903,7 +906,13 @@ static inline u8 has_new_bits(u8* virgin_map) {
 #ifdef USE_CRF
   u8   goRet = 0;
 
+  start = clock();
   goRet = (u8) IsInteresting();
+  end = clock();
+  tot += end - start;
+  isIntCnt++;
+
+
   if (goRet == 0)
       return goRet;
   // Continue so AFL does its updating stuff.
@@ -4969,6 +4978,10 @@ static u8 fuzz_one(char** argv) {
 
   u8  a_collect[MAX_AUTO_EXTRA];
   u32 a_len = 0;
+
+  printf("Avg IsInt time: %.1f us\n",
+          1e6 * ((float) tot) / ((float) CLOCKS_PER_SEC * isIntCnt));
+  PrintAnalTime();
 
 #ifdef IGNORE_FINDS
 
