@@ -4213,7 +4213,8 @@ static void show_stats(void) {
 
   } else {
 
-    sprintf(tmp, "%s/sec", DF(avg_exec));
+    sprintf(tmp, "%s/sec (fc: %lli)", DF(avg_exec),
+            1000000ULL/queue_cur->exec_us);
     SAYF(bV bSTOP "  exec speed : " cRST "%-21s ", tmp);
 
   }
@@ -5116,7 +5117,11 @@ static u8 fuzz_one(char** argv) {
    * PERFORMANCE SCORE *
    *********************/
 
+#ifdef USE_CRF
+  orig_perf = perf_score = (u32) (100000ULL / queue_cur->exec_us);
+#else
   orig_perf = perf_score = calculate_score(queue_cur);
+#endif
 
   /* Skip right away if -d is given, if we have done deterministic fuzzing on
      this entry ourselves (was_fuzzed), or if it has gone through deterministic
@@ -8106,6 +8111,7 @@ int main(int argc, char** argv) {
     cs_ret =  ChoseSeed();
     queue_cur = (struct queue_entry*) cs_ret.r0;
     current_entry = (u32) cs_ret.r1;
+    //printf("\nSeed speed: %lli\n", queue_cur->exec_us);
 #else
     queue_cur = queue_cur->next;
     current_entry++;
