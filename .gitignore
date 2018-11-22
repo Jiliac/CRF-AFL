@@ -1,0 +1,7 @@
+.*.swp
+afl-*
+*.so
+test-instr
+tmp-in
+tmp-out
+as

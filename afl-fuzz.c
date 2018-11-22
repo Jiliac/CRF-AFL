@@ -31,6 +31,7 @@
 #include "debug.h"
 #include "alloc-inl.h"
 #include "hash.h"
+#include "crf.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -4948,6 +4949,8 @@ static u8 fuzz_one(char** argv) {
 
   u8  a_collect[MAX_AUTO_EXTRA];
   u32 a_len = 0;
+
+  Hello();
 
 #ifdef IGNORE_FINDS
 
