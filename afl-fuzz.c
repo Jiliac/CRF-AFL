@@ -31,7 +31,11 @@
 #include "debug.h"
 #include "alloc-inl.h"
 #include "hash.h"
+
+#define USE_CRF
+#ifdef USE_CRF
 #include "crf.h"
+#endif
 
 #include <stdio.h>
 #include <unistd.h>
@@ -896,6 +900,16 @@ static inline u8 has_new_bits(u8* virgin_map) {
 
   u8   ret = 0;
 
+#ifdef USE_CRF
+  u8   goRet = 0;
+
+  goRet = (u8) IsInteresting();
+  if (goRet == 0)
+      return goRet;
+  // Continue so AFL does its updating stuff.
+#endif
+
+
   while (i--) {
 
     /* Optimize for (*current & *virgin) == 0 - i.e., no bits in current bitmap
@@ -939,6 +953,9 @@ static inline u8 has_new_bits(u8* virgin_map) {
 
   }
 
+#ifdef USE_CRF
+  ret = goRet;
+#endif
   if (ret && virgin_map == virgin_bits) bitmap_changed = 1;
 
   return ret;
@@ -1370,6 +1387,9 @@ EXP_ST void setup_shm(void) {
   
   if (!trace_bits) PFATAL("shmat() failed");
 
+#ifdef USE_CRF
+  GoSetTrace((void*) trace_bits);
+#endif
 }
 
 
@@ -4949,8 +4969,6 @@ static u8 fuzz_one(char** argv) {
 
   u8  a_collect[MAX_AUTO_EXTRA];
   u32 a_len = 0;
-
-  Hello();
 
 #ifdef IGNORE_FINDS
 
