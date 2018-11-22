@@ -35,9 +35,6 @@
 #define USE_CRF
 #ifdef USE_CRF
 #include "crf.h"
-#include <time.h>
-clock_t start, end, tot;
-u64 isIntCnt = 0;
 #endif
 
 #include <stdio.h>
@@ -903,22 +900,6 @@ static inline u8 has_new_bits(u8* virgin_map) {
 
   u8   ret = 0;
 
-#ifdef USE_CRF
-  u8   goRet = 0;
-
-  start = clock();
-  goRet = (u8) IsInteresting();
-  end = clock();
-  tot += end - start;
-  isIntCnt++;
-
-
-  if (goRet == 0)
-      return goRet;
-  // Continue so AFL does its updating stuff.
-#endif
-
-
   while (i--) {
 
     /* Optimize for (*current & *virgin) == 0 - i.e., no bits in current bitmap
@@ -962,9 +943,6 @@ static inline u8 has_new_bits(u8* virgin_map) {
 
   }
 
-#ifdef USE_CRF
-  ret = goRet;
-#endif
   if (ret && virgin_map == virgin_bits) bitmap_changed = 1;
 
   return ret;
@@ -2619,7 +2597,20 @@ static u8 calibrate_case(char** argv, struct queue_entry* q, u8* use_mem,
 
     if (q->exec_cksum != cksum) {
 
-      u8 hnb = has_new_bits(virgin_bits);
+      u8 hnb = 0;
+
+#ifdef USE_CRF
+      u8   goRet = 0;
+
+      goRet = (u8) IsInteresting();
+
+      if (goRet != 0) {
+        has_new_bits(virgin_bits);
+        hnb = goRet;
+      }
+#else
+      hnb = has_new_bits(virgin_bits);
+#endif
       if (hnb > new_bits) new_bits = hnb;
 
       if (q->exec_cksum) {
@@ -3150,13 +3141,29 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
   u8  hnb;
   s32 fd;
   u8  keeping = 0, res;
+#ifdef USE_CRF
+  u8   goRet = 0;
+#endif
 
   if (fault == crash_mode) {
 
     /* Keep only if there are new bits in the map, add to queue for
        future fuzzing, etc. */
 
-    if (!(hnb = has_new_bits(virgin_bits))) {
+#ifdef USE_CRF
+    goRet = (u8) IsInteresting();
+
+    if (goRet != 0) {
+      has_new_bits(virgin_bits);
+      hnb = goRet;
+    } else {
+        hnb = 0;
+    }
+#else
+    hnb = has_new_bits(virgin_bits);
+#endif
+
+    if (!hnb) {
       if (crash_mode) total_crashes++;
       return 0;
     }    
@@ -4979,8 +4986,6 @@ static u8 fuzz_one(char** argv) {
   u8  a_collect[MAX_AUTO_EXTRA];
   u32 a_len = 0;
 
-  printf("Avg IsInt time: %.1f us\n",
-          1e6 * ((float) tot) / ((float) CLOCKS_PER_SEC * isIntCnt));
   PrintAnalTime();
 
 #ifdef IGNORE_FINDS
