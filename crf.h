@@ -65,6 +65,16 @@ extern "C" {
 #endif
 
 
+extern void NewSeed(void* p0);
+
+/* Return type for ChoseSeed */
+struct ChoseSeed_return {
+	void* r0;
+	int r1;
+};
+
+extern struct ChoseSeed_return ChoseSeed();
+
 extern void GoSetTrace(void* p0);
 
 extern short int IsInteresting();

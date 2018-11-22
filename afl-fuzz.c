@@ -782,6 +782,10 @@ static void add_to_queue(u8* fname, u32 len, u8 passed_det) {
 
   struct queue_entry* q = ck_alloc(sizeof(struct queue_entry));
 
+#ifdef USE_CRF
+  NewSeed((void*) q);
+#endif
+
   q->fname        = fname;
   q->len          = len;
   q->depth        = cur_depth + 1;
@@ -8043,6 +8047,9 @@ int main(int argc, char** argv) {
   while (1) {
 
     u8 skipped_fuzz;
+#ifdef USE_CRF
+    struct ChoseSeed_return cs_ret;
+#endif
 
     cull_queue();
 
@@ -8095,8 +8102,14 @@ int main(int argc, char** argv) {
 
     if (stop_soon) break;
 
+#ifdef USE_CRF
+    cs_ret =  ChoseSeed();
+    queue_cur = (struct queue_entry*) cs_ret.r0;
+    current_entry = (u32) cs_ret.r1;
+#else
     queue_cur = queue_cur->next;
     current_entry++;
+#endif
 
   }
 
